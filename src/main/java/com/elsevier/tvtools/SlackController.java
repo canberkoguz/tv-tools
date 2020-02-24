@@ -27,19 +27,15 @@ public class SlackController {
                                                @RequestParam("channel_name") String channelName,
                                                @RequestParam("user_id") String userId,
                                                @RequestParam("user_name") String userName,
-                                               @RequestParam("command") String command,
                                                @RequestParam("text") String text,
                                                @RequestParam("response_url") String responseUrl) {
 
-    if (DISPLAY_COMMAND.equals(command)) {
-      SendMessageRequest sendMessageStandardQueue = new SendMessageRequest()
-          .withQueueUrl(SQS_URL)
-          .withMessageBody(text)
-          .withDelaySeconds(0);
-      awsSqsClient.sendMessage(sendMessageStandardQueue);
-      return new SlackResponse("Sent to SQS!");
-    }
-    return new SlackResponse("invalid command: " + command);
+    SendMessageRequest sendMessageStandardQueue = new SendMessageRequest()
+        .withQueueUrl(SQS_URL)
+        .withMessageBody(text)
+        .withDelaySeconds(0);
+    awsSqsClient.sendMessage(sendMessageStandardQueue);
+    return new SlackResponse("Sent to SQS: " + text);
   }
 
 }
