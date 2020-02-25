@@ -1,8 +1,11 @@
 package com.elsevier.tvtools;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ public class SlackController {
   private final AmazonSQS awsSqsClient;
   private static final String[] TV_NAMES = new String[] {"tv-fi", "tv-fs", "tv-gh", "tv-el"};
   private static final Set<String> TV_SET = new HashSet<>(Arrays.asList(TV_NAMES));
+  private static final String BLOCK_TYPE = "section";
+  private static final String FIELD_TYPE = "plain_text";
 
   @RequestMapping(value = "/display",
                   method = RequestMethod.POST,
@@ -47,7 +52,19 @@ public class SlackController {
                   method = RequestMethod.POST,
                   consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
   public SlackResponse onReceiveListTvsCommand() {
-    return new SlackResponse("Available TVs: " + String.join(",", TV_NAMES));
+    return new SlackResponse(getTvBlocks());
+  }
+
+  private List<Block> getTvBlocks() {
+    List<Field> fields = TV_SET.stream().map(tv -> Field.builder()
+        .text(tv)
+        .type(FIELD_TYPE)
+        .build())
+        .collect(Collectors.toList());
+    return Collections.singletonList(Block.builder()
+        .type(BLOCK_TYPE)
+        .fields(fields)
+        .build());
   }
 
 }

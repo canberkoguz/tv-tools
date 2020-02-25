@@ -1,9 +1,12 @@
 package com.elsevier.tvtools;
 
+
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,25 +15,15 @@ import lombok.Setter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
-public class SlackResponse {
+@AllArgsConstructor
+public class Block {
+
+  @JsonProperty("type")
+  private String type;
 
   @JsonProperty("text")
-  private String text;
-
-  @JsonProperty("response_type")
-  private String responseType;
-
-  @JsonProperty("blocks")
-  private List<Block> blocks;
-
-
-  public SlackResponse(String text) {
-    this.text = text;
-  }
-
-  public SlackResponse(List<Block> blocks) {
-    this.blocks = blocks;
-  }
+  private List<Field> fields;
 
 }
