@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class SlackController {
 
-  private static final String SQS_URL = "https://sqs.us-east-1.amazonaws.com/804335263071/hackaton-tv-tool";
-  private static final String DISPLAY_COMMAND = "display";
+  private static final String SQS_URL = "https://sqs.eu-west-1.amazonaws.com/804335263071/hackaton-tv-tool";
 
   private final AmazonSQS awsSqsClient;
 

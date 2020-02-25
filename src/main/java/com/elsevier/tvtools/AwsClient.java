@@ -25,7 +25,7 @@ public class AwsClient {
         secretKey);
     return AmazonSQSClientBuilder.standard()
         .withCredentials(new AWSStaticCredentialsProvider(credentials))
-        .withRegion(Regions.US_EAST_1)
+        .withRegion(Regions.EU_WEST_1)
         .build();
   }
 
