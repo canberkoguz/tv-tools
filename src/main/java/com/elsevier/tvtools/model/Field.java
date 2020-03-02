@@ -1,4 +1,4 @@
-package com.elsevier.tvtools;
+package com.elsevier.tvtools.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;

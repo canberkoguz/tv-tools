@@ -1,4 +1,4 @@
-package com.elsevier.tvtools;
+package com.elsevier.tvtools.model;
 
 
 import java.util.List;
