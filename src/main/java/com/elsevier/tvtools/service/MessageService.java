@@ -1,31 +1,32 @@
 package com.elsevier.tvtools.service;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-import javax.annotation.PostConstruct;
-import com.elsevier.tvtools.model.TV;
+import com.elsevier.tvtools.repository.MessageRepository;
+import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ReflectionUtils;
 
 @Service
+@RequiredArgsConstructor
 public class MessageService {
 
-  private final Map<String, Queue<String>> queueMap = new HashMap<>();
-
-  @PostConstruct
-  public void initQueues() {
-    TV.NAMES.forEach(tvName -> queueMap.put(tvName, new LinkedList<>()));
-  }
+  private final MessageRepository messageRepository;
 
   public void sendMessage(String tvName, String text) {
-    Queue<String> messageQueue = queueMap.get(tvName);
-    messageQueue.add(text);
+    messageRepository.saveMessage(tvName, text);
   }
 
-  public String receiveMessage(String tvName) {
-    Queue<String> messageQueue = queueMap.get(tvName);
-    return messageQueue.poll();
+  public Flux<String> streamMessages(String tvName) {
+    return Flux.create(fluxSink -> {
+      while (true) {
+        try {
+          String message = messageRepository.getMessage(tvName);
+          fluxSink.next(message);
+        } catch (InterruptedException e) {
+          ReflectionUtils.rethrowRuntimeException(e);
+        }
+      }
+    });
   }
 
 }

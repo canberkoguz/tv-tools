@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,12 +25,12 @@ public class SlackController {
   private String slackToken;
 
   @PostMapping(value = "/display", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-  public SlackResponse onReceiveDisplayCommand(@RequestParam("text") String text,
-                                               @RequestParam("token") String token) throws AccessDeniedException {
-    if (!slackToken.equals(token)) {
+  public SlackResponse onReceiveDisplayCommand(SlackRequest slackRequest) throws AccessDeniedException {
+    if (!slackToken.equals(slackRequest.getToken())) {
       throw new AccessDeniedException("Forbidden!");
     }
-    if (StringUtils.isEmpty(text)) {
+    String text = slackRequest.getText();
+    if (StringUtils.isEmpty(slackRequest.getText())) {
       return buildResponse("Empty message!");
     }
     String[] messageWords = text.split(" ");
