@@ -1,0 +1,26 @@
+{
+  "name": "TV Tools",
+  "version": "1.0",
+  "description": "Message the TV!",
+  "permissions": ["storage"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "icons": {
+    "128": "images/logo128.png",
+    "512": "images/logo.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "128": "images/logo128.png"
+    },
+    "default_title": "TV Tools",
+    "default_popup": "options.html"
+  },
+  "manifest_version": 2
+}
