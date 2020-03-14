@@ -1,4 +1,4 @@
-package com.elsevier.tvtools.controller;
+package com.elsevier.tvtools.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

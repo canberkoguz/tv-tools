@@ -1,3 +1,6 @@
 spring:
+  mvc:
+    async:
+      request-timeout: -1 #limitless
   jackson:
     default-property-inclusion: non_null

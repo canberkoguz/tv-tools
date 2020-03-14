@@ -1,39 +1,60 @@
 package com.elsevier.tvtools.service;
 
-import java.time.Duration;
-import com.elsevier.tvtools.repository.MessageRepository;
-import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Flux;
-import org.springframework.http.codec.ServerSentEvent;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Service
-@RequiredArgsConstructor
+@EnableScheduling
 public class MessageService {
 
-  private static final ServerSentEvent<String> KEEP_ALIVE_EVENT = ServerSentEvent.<String>builder()
-      .comment("keep alive")
-      .build();
+  private static final SseEmitter.SseEventBuilder KEEP_ALIVE_EVENT = SseEmitter.event().comment("keep alive");
+  private final Map<String, List<SseEmitter>> emitterMap = new HashMap<>();
 
-  private final MessageRepository messageRepository;
-
-  public void sendMessage(String tvName, String text) {
-    messageRepository.saveMessage(tvName, text);
+  public void addEmitter(final String tvName, final SseEmitter emitter) {
+    final List<SseEmitter> emitters = emitterMap.getOrDefault(tvName, new CopyOnWriteArrayList<>());
+    emitters.add(emitter);
+    emitterMap.put(tvName, emitters);
   }
 
-  public Flux<ServerSentEvent<String>> streamMessages(String tvName) {
-    return Flux.interval(Duration.ofSeconds(1L))
-        .map(seq -> getMessage(tvName));
-  }
-
-  private ServerSentEvent<String> getMessage(String tvName) {
-    String message = messageRepository.getMessage(tvName);
-    if (StringUtils.isEmpty(message)) {
-      return KEEP_ALIVE_EVENT;
-    } else {
-      return ServerSentEvent.builder(message).build();
+  public void removeEmitter(final String tvName, final SseEmitter emitter) {
+    final List<SseEmitter> emitters = emitterMap.get(tvName);
+    if (!CollectionUtils.isEmpty(emitters)) {
+      emitters.remove(emitter);
     }
+  }
+
+  @Async
+  public void sendMessage(final String tvName, final String text) {
+    final List<SseEmitter> emitters = emitterMap.getOrDefault(tvName, Collections.emptyList());
+    notifyEmitters(emitters, SseEmitter.event().data(text));
+  }
+
+  @Async
+  @Scheduled(fixedRate = 15000)
+  public void keepALive() {
+    emitterMap.values().forEach(emitters -> notifyEmitters(emitters, KEEP_ALIVE_EVENT));
+  }
+
+  private void notifyEmitters(List<SseEmitter> emitters, SseEmitter.SseEventBuilder keepAliveEvent) {
+    List<SseEmitter> deadEmitters = new ArrayList<>();
+    emitters.forEach(emitter -> {
+      try {
+        emitter.send(keepAliveEvent);
+      } catch (Exception e) {
+        deadEmitters.add(emitter);
+      }
+    });
+    emitters.removeAll(deadEmitters);
   }
 
 }
