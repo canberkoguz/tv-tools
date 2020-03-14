@@ -2,14 +2,14 @@ package com.elsevier.tvtools.controller;
 
 import com.elsevier.tvtools.service.MessageService;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Flux;
-import org.springframework.http.MediaType;
-import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/message")
@@ -19,9 +19,14 @@ public class MessageController {
   private final MessageService messageService;
 
   @CrossOrigin
-  @GetMapping(path = "/stream/{tvName}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public Flux<ServerSentEvent<String>> streamMessages(@PathVariable String tvName) {
-    return messageService.streamMessages(tvName);
+  @GetMapping("/stream/{tvName}")
+  public ResponseEntity<SseEmitter> streamMessages(@PathVariable String tvName) {
+    final SseEmitter emitter = new SseEmitter();
+    messageService.addEmitter(tvName, emitter);
+    messageService.keepALive();
+    emitter.onCompletion(() -> messageService.removeEmitter(tvName, emitter));
+    emitter.onTimeout(() -> messageService.removeEmitter(tvName, emitter));
+    return new ResponseEntity<>(emitter, HttpStatus.OK);
   }
 
 }
