@@ -1,6 +1,7 @@
 package com.elsevier.tvtools.controller;
 
 import java.nio.file.AccessDeniedException;
+import com.elsevier.tvtools.model.SlackRequest;
 import com.elsevier.tvtools.model.SlackResponse;
 import com.elsevier.tvtools.model.TV;
 import com.elsevier.tvtools.service.MessageService;

@@ -1,8 +1,8 @@
 package com.elsevier.tvtools.controller;
 
+import com.elsevier.tvtools.model.TV;
 import com.elsevier.tvtools.service.MessageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,12 +21,15 @@ public class MessageController {
   @CrossOrigin
   @GetMapping("/stream/{tvName}")
   public ResponseEntity<SseEmitter> streamMessages(@PathVariable String tvName) {
+    if (!TV.isValid(tvName)) {
+      return ResponseEntity.badRequest().build();
+    }
     final SseEmitter emitter = new SseEmitter();
     messageService.addEmitter(tvName, emitter);
     messageService.keepALive();
     emitter.onCompletion(() -> messageService.removeEmitter(tvName, emitter));
     emitter.onTimeout(() -> messageService.removeEmitter(tvName, emitter));
-    return new ResponseEntity<>(emitter, HttpStatus.OK);
+    return ResponseEntity.ok(emitter);
   }
 
 }
